@@ -14,13 +14,13 @@ int main(int argc, char** argv)
 	initialize_dense_track();
 	while(true) {
 		// get a new frame
-		std::vector< std::vector< float > > featuresVect;
+		cv::Mat featuresVect;
 		Mat frame;
 		capture >> frame;
 		if(frame.empty())
 			break;
 		process_frame(frame, &featuresVect);
-		printVect(featuresVect);
+		printMat(featuresVect);
 	}
 
 	return 0;

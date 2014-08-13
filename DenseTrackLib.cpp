@@ -16,12 +16,12 @@ int patch_size = 32;
 int nxy_cell = 2;
 int nt_cell = 3;
 float epsilon = 0.05;
-
 // parameters for tracking
 double quality = 0.001;
 int min_distance = 5;
 int init_gap = 1;
 int track_length = 15;
+int desc_size = 7 + track_length * 2 + 8 * nxy_cell * nxy_cell * nt_cell + 9 * nxy_cell * nxy_cell * nt_cell + 8 * nxy_cell * nxy_cell * nt_cell + 8 * nxy_cell * nxy_cell * nt_cell; 
 
 int show_track = 0; // set show_track = 1, if you want to visualize the trajectories
 	
@@ -52,7 +52,7 @@ void initialize_dense_track() {
 		namedWindow("DenseTrack", 0);
 }
 
-void process_frame(Mat& frame, std::vector< std::vector< float > >* results) {
+void process_frame(Mat& frame, cv::Mat* results) {
 	int i, j, c;
 	if(frame.empty())
 		return;
@@ -170,26 +170,27 @@ void process_frame(Mat& frame, std::vector< std::vector< float > >* results) {
 			
 				float mean_x(0), mean_y(0), var_x(0), var_y(0), length(0);
 				if(IsValid(trajectory, mean_x, mean_y, var_x, var_y, length)) {
-					std::vector<float> row;
+					cv::Mat row(1,desc_size,CV_32F);
 					//printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\t", frame_num, mean_x, mean_y, var_x, var_y, length, fscales[iScale]);
-					row.push_back(frame_num);
-					row.push_back(mean_x);
-					row.push_back(mean_y);
-					row.push_back(var_x);
-					row.push_back(var_y);
-					row.push_back(length);
-					row.push_back(fscales[iScale]);
+					
+					row.at<int>(0,0) =  frame_num;
+					row.at<float>(0,1) = (mean_x);
+					row.at<float>(0,2) = (mean_y);
+					row.at<float>(0,3) = (var_x);
+					row.at<float>(0,4) = (var_y);
+					row.at<float>(0,5) = (length);
+					row.at<float>(0,6) = (fscales[iScale]);
 					// output the trajectory
+					int pointer = 7;
 					for (int i = 0; i < trackInfo.length; ++i) {
-						row.push_back(trajectory[i].x);
-						row.push_back(trajectory[i].y);
+						row.at<float>(0,pointer++) = (trajectory[i].x);
+						row.at<float>(0,pointer++) = (trajectory[i].y);
 					}
 					//	printf("%f\t%f\t", trajectory[i].x,trajectory[i].y);
-					
-					AppendVectDesc(iTrack->hog, hogInfo, trackInfo, row);
-					AppendVectDesc(iTrack->hof, hofInfo, trackInfo, row);
-					AppendVectDesc(iTrack->mbhX, mbhInfo, trackInfo, row);
-					AppendVectDesc(iTrack->mbhY, mbhInfo, trackInfo, row);
+					pointer = AppendVectDesc(iTrack->hog, hogInfo, trackInfo, row, pointer);
+					pointer = AppendVectDesc(iTrack->hof, hofInfo, trackInfo, row, pointer);
+					pointer = AppendVectDesc(iTrack->mbhX, mbhInfo, trackInfo, row, pointer);
+					AppendVectDesc(iTrack->mbhY, mbhInfo, trackInfo, row, pointer);
 					//PrintDesc(iTrack->hog, hogInfo, trackInfo);
 					//PrintDesc(iTrack->hof, hofInfo, trackInfo);
 					//PrintDesc(iTrack->mbhX, mbhInfo, trackInfo);
@@ -304,6 +305,23 @@ bool arg_parse(int argc, char** argv)
 	}
 	return flag;
 }
+
+void printMat(cv::Mat& r) {
+	int j = 0;
+	for(int a = 0; a < r.rows; a++) {
+		printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\t", r.at<int>(a, 0), r.at<float>(a,1), r.at<float>(a,2), r.at<float>(a,3), r.at<float>(a,4), r.at<float>(a,5), r.at<float>(a,6));          
+		j = 7;
+		for(int z = 0; z < 15; z++) {
+			printf("%f\t%f\t", r.at<float>(a,j), r.at<float>(a,j+1));
+			j += 2;
+		}
+		for(int z = j; z < r.cols; z++) {
+			printf("%.7f\t", r.at<float>(a,z));
+		}
+		printf("\n");
+	}
+}
+
 
 void printVect(std::vector< std::vector< float > >& featuresVect) {
 	int j = 0;

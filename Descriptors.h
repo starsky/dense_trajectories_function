@@ -308,7 +308,7 @@ void PrintDesc(std::vector<float>& desc, DescInfo& descInfo, TrackInfo& trackInf
 	}
 }
 
-void AppendVectDesc(std::vector<float>& desc, DescInfo& descInfo, TrackInfo& trackInfo, std::vector<float>& row)
+int AppendVectDesc(std::vector<float>& desc, DescInfo& descInfo, TrackInfo& trackInfo, cv::Mat& row, int pointer)
 {
 	int tStride = cvFloor(trackInfo.length/descInfo.ntCells);
 	float norm = 1./float(tStride);
@@ -320,8 +320,9 @@ void AppendVectDesc(std::vector<float>& desc, DescInfo& descInfo, TrackInfo& tra
 			for(int j = 0; j < dim; j++)
 				vec[j] += desc[pos++];
 		for(int j = 0; j < dim; j++)
-			row.push_back(vec[j]*norm);
+			row.at<float>(0,pointer++) = vec[j]*norm;
 	}
+	return pointer;
 }
 
 #endif /*DESCRIPTORS_H_*/

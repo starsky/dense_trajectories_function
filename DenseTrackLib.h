@@ -59,7 +59,7 @@ extern double quality;
 extern int min_distance;
 extern int init_gap;
 extern int track_length;
-
+extern int desc_size;
 
 typedef struct {
 	int x;       // top left corner
@@ -125,8 +125,9 @@ public:
 };
 
 void initialize_dense_track();
-void process_frame(Mat& frame, std::vector< std::vector< float > >* results);
+void process_frame(Mat& frame, cv::Mat* results);
 bool arg_parse(int argc, char** argv);
 void printVect(std::vector< std::vector< float > >& featuresVect);
+void printMat(cv::Mat& featuresVect);
 
 #endif /*DENSETRACK_H_*/
