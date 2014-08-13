@@ -52,9 +52,8 @@ void initialize_dense_track() {
 		namedWindow("DenseTrack", 0);
 }
 
-void process_frame(Mat& frame) {
+void process_frame(Mat& frame, std::vector< std::vector< float > >* results) {
 	int i, j, c;
-
 	if(frame.empty())
 		return;
 
@@ -171,17 +170,32 @@ void process_frame(Mat& frame) {
 			
 				float mean_x(0), mean_y(0), var_x(0), var_y(0), length(0);
 				if(IsValid(trajectory, mean_x, mean_y, var_x, var_y, length)) {
-					printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\t", frame_num, mean_x, mean_y, var_x, var_y, length, fscales[iScale]);
-
+					std::vector<float> row;
+					//printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\t", frame_num, mean_x, mean_y, var_x, var_y, length, fscales[iScale]);
+					row.push_back(frame_num);
+					row.push_back(mean_x);
+					row.push_back(mean_y);
+					row.push_back(var_x);
+					row.push_back(var_y);
+					row.push_back(length);
+					row.push_back(fscales[iScale]);
 					// output the trajectory
-					for (int i = 0; i < trackInfo.length; ++i)
-						printf("%f\t%f\t", trajectory[i].x,trajectory[i].y);
-	
-					PrintDesc(iTrack->hog, hogInfo, trackInfo);
-					PrintDesc(iTrack->hof, hofInfo, trackInfo);
-					PrintDesc(iTrack->mbhX, mbhInfo, trackInfo);
-					PrintDesc(iTrack->mbhY, mbhInfo, trackInfo);
-					printf("\n");
+					for (int i = 0; i < trackInfo.length; ++i) {
+						row.push_back(trajectory[i].x);
+						row.push_back(trajectory[i].y);
+					}
+					//	printf("%f\t%f\t", trajectory[i].x,trajectory[i].y);
+					
+					AppendVectDesc(iTrack->hog, hogInfo, trackInfo, row);
+					AppendVectDesc(iTrack->hof, hofInfo, trackInfo, row);
+					AppendVectDesc(iTrack->mbhX, mbhInfo, trackInfo, row);
+					AppendVectDesc(iTrack->mbhY, mbhInfo, trackInfo, row);
+					//PrintDesc(iTrack->hog, hogInfo, trackInfo);
+					//PrintDesc(iTrack->hof, hofInfo, trackInfo);
+					//PrintDesc(iTrack->mbhX, mbhInfo, trackInfo);
+					//PrintDesc(iTrack->mbhY, mbhInfo, trackInfo);
+					//printf("\n");
+					results->push_back(row);
 				}
 
 				iTrack = tracks.erase(iTrack);
@@ -222,7 +236,7 @@ void process_frame(Mat& frame) {
 		c = cvWaitKey(3);
 		if((char)c == 27) return;
 	}
-
+	return;
 }
 
 void usage()
@@ -289,6 +303,23 @@ bool arg_parse(int argc, char** argv)
 		abort();
 	}
 	return flag;
+}
+
+void printVect(std::vector< std::vector< float > >& featuresVect) {
+	int j = 0;
+	for( std::vector< std::vector<float> >::const_iterator i = featuresVect.begin(); i != featuresVect.end(); ++i) {
+		std::vector<float> r = *i;
+		printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\t", (int) r[0], r[1], r[2], r[3], r[4], r[5], r[6]);          
+		j = 7;
+		for(int z = 0; z < 15; z++) {
+			printf("%f\t%f\t", r[j], r[j+1]);
+			j += 2;
+		}
+		for(int z = j; z < r.size(); z++) {
+			printf("%.7f\t", r[z]);
+		}
+		printf("\n");
+	}
 }
 /*
 int main(int argc, char** argv)

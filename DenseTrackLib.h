@@ -125,8 +125,8 @@ public:
 };
 
 void initialize_dense_track();
-void process_frame(Mat& frame);
+void process_frame(Mat& frame, std::vector< std::vector< float > >* results);
 bool arg_parse(int argc, char** argv);
-
+void printVect(std::vector< std::vector< float > >& featuresVect);
 
 #endif /*DENSETRACK_H_*/

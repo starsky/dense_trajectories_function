@@ -7,7 +7,6 @@ int main(int argc, char** argv)
 	char* video = argv[1];
 	int flag = arg_parse(argc, argv);
 	capture.open(video);
-
 	if(!capture.isOpened()) {
 		fprintf(stderr, "Could not initialize capturing..\n");
 		return -1;
@@ -15,11 +14,13 @@ int main(int argc, char** argv)
 	initialize_dense_track();
 	while(true) {
 		// get a new frame
+		std::vector< std::vector< float > > featuresVect;
 		Mat frame;
 		capture >> frame;
 		if(frame.empty())
 			break;
-		process_frame(frame);		
+		process_frame(frame, &featuresVect);
+		printVect(featuresVect);
 	}
 
 	return 0;
