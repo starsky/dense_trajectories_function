@@ -1,3 +1,5 @@
 .build_release/
 .build_debug/
 test_sequences/
+release/
+debug/
