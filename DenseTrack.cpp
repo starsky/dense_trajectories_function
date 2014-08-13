@@ -8,6 +8,35 @@
 using namespace cv;
 
 int show_track = 0; // set show_track = 1, if you want to visualize the trajectories
+	
+Mat image, prev_grey, grey;
+
+//Global variables (soo ugly :( )
+std::vector<float> fscales(0);
+std::vector<Size> sizes(0);
+
+std::vector<Mat> prev_grey_pyr(0), grey_pyr(0), flow_pyr(0);
+std::vector<Mat> prev_poly_pyr(0), poly_pyr(0); // for optical flow
+
+std::vector<std::list<Track> > xyScaleTracks;
+int init_counter = 0; // indicate when to detect new feature points
+int frame_num = 0;
+TrackInfo trackInfo;
+DescInfo hogInfo, hofInfo, mbhInfo;
+
+
+void initialize_dense_track() {
+
+	InitTrackInfo(&trackInfo, track_length, init_gap);
+	InitDescInfo(&hogInfo, 8, false, patch_size, nxy_cell, nt_cell);
+	InitDescInfo(&hofInfo, 9, true, patch_size, nxy_cell, nt_cell);
+	InitDescInfo(&mbhInfo, 8, false, patch_size, nxy_cell, nt_cell);
+
+
+	if(show_track == 1)
+		namedWindow("DenseTrack", 0);
+
+}
 
 int main(int argc, char** argv)
 {
@@ -20,37 +49,7 @@ int main(int argc, char** argv)
 		fprintf(stderr, "Could not initialize capturing..\n");
 		return -1;
 	}
-
-	int frame_num = 0;
-	TrackInfo trackInfo;
-	DescInfo hogInfo, hofInfo, mbhInfo;
-
-	InitTrackInfo(&trackInfo, track_length, init_gap);
-	InitDescInfo(&hogInfo, 8, false, patch_size, nxy_cell, nt_cell);
-	InitDescInfo(&hofInfo, 9, true, patch_size, nxy_cell, nt_cell);
-	InitDescInfo(&mbhInfo, 8, false, patch_size, nxy_cell, nt_cell);
-
-	SeqInfo seqInfo;
-	InitSeqInfo(&seqInfo, video);
-
-	if(flag)
-		seqInfo.length = end_frame - start_frame + 1;
-
-//	fprintf(stderr, "video size, length: %d, width: %d, height: %d\n", seqInfo.length, seqInfo.width, seqInfo.height);
-
-	if(show_track == 1)
-		namedWindow("DenseTrack", 0);
-
-	Mat image, prev_grey, grey;
-
-	std::vector<float> fscales(0);
-	std::vector<Size> sizes(0);
-
-	std::vector<Mat> prev_grey_pyr(0), grey_pyr(0), flow_pyr(0);
-	std::vector<Mat> prev_poly_pyr(0), poly_pyr(0); // for optical flow
-
-	std::vector<std::list<Track> > xyScaleTracks;
-	int init_counter = 0; // indicate when to detect new feature points
+	initialize_dense_track();
 	while(true) {
 		Mat frame;
 		int i, j, c;
@@ -175,11 +174,6 @@ int main(int argc, char** argv)
 					if(IsValid(trajectory, mean_x, mean_y, var_x, var_y, length)) {
 						printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\t", frame_num, mean_x, mean_y, var_x, var_y, length, fscales[iScale]);
 
-						// for spatio-temporal pyramid
-						printf("%f\t", std::min<float>(std::max<float>(mean_x/float(seqInfo.width), 0), 0.999));
-						printf("%f\t", std::min<float>(std::max<float>(mean_y/float(seqInfo.height), 0), 0.999));
-						printf("%f\t", std::min<float>(std::max<float>((frame_num - trackInfo.length/2.0 - start_frame)/float(seqInfo.length), 0), 0.999));
-					
 						// output the trajectory
 						for (int i = 0; i < trackInfo.length; ++i)
 							printf("%f\t%f\t", trajectory[i].x,trajectory[i].y);
