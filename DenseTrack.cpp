@@ -7,6 +7,22 @@
 
 using namespace cv;
 
+int start_frame = 0;
+int end_frame = INT_MAX;
+int scale_num = 8;
+
+// parameters for descriptors
+int patch_size = 32;
+int nxy_cell = 2;
+int nt_cell = 3;
+float epsilon = 0.05;
+
+// parameters for tracking
+double quality = 0.001;
+int min_distance = 5;
+int init_gap = 1;
+int track_length = 15;
+
 int show_track = 0; // set show_track = 1, if you want to visualize the trajectories
 	
 Mat image, prev_grey, grey;
@@ -26,7 +42,6 @@ DescInfo hogInfo, hofInfo, mbhInfo;
 
 
 void initialize_dense_track() {
-
 	InitTrackInfo(&trackInfo, track_length, init_gap);
 	InitDescInfo(&hogInfo, 8, false, patch_size, nxy_cell, nt_cell);
 	InitDescInfo(&hofInfo, 9, true, patch_size, nxy_cell, nt_cell);
@@ -35,7 +50,6 @@ void initialize_dense_track() {
 
 	if(show_track == 1)
 		namedWindow("DenseTrack", 0);
-
 }
 
 void process_frame(Mat& frame) {
@@ -208,8 +222,9 @@ void process_frame(Mat& frame) {
 		c = cvWaitKey(3);
 		if((char)c == 27) return;
 	}
-}
 
+}
+/*
 int main(int argc, char** argv)
 {
 	VideoCapture capture;
@@ -235,4 +250,4 @@ int main(int argc, char** argv)
 		destroyWindow("DenseTrack");
 
 	return 0;
-}
+}*/

@@ -17,7 +17,7 @@
 #include <string>
 
 using namespace cv;
-
+/*
 int start_frame = 0;
 int end_frame = INT_MAX;
 int scale_num = 8;
@@ -35,11 +35,31 @@ double quality = 0.001;
 int min_distance = 5;
 int init_gap = 1;
 int track_length = 15;
+*/
 
 // parameters for rejecting trajectory
 const float min_var = sqrt(3);
 const float max_var = 50;
 const float max_dis = 20;
+
+extern int start_frame;
+extern int end_frame;
+extern int scale_num;
+const float scale_stride = sqrt(2);
+
+// parameters for descriptors
+extern int patch_size;
+extern int nxy_cell;
+extern int nt_cell;
+extern float epsilon;
+const float min_flow = 0.4;
+
+// parameters for tracking
+extern double quality;
+extern int min_distance;
+extern int init_gap;
+extern int track_length;
+
 
 typedef struct {
 	int x;       // top left corner
@@ -103,5 +123,8 @@ public:
         point[index] = point_;
     }
 };
+
+void initialize_dense_track();
+void process_frame(Mat& frame);
 
 #endif /*DENSETRACK_H_*/
