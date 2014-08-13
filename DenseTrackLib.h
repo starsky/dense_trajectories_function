@@ -126,5 +126,7 @@ public:
 
 void initialize_dense_track();
 void process_frame(Mat& frame);
+bool arg_parse(int argc, char** argv);
+
 
 #endif /*DENSETRACK_H_*/

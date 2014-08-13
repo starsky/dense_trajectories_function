@@ -1,7 +1,7 @@
 #ifndef DESCRIPTORS_H_
 #define DESCRIPTORS_H_
 
-#include "DenseTrack.h"
+#include "DenseTrackLib.h"
 using namespace cv;
 
 // get the rectangle for computing the descriptor
