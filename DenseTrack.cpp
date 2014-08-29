@@ -14,7 +14,7 @@ int main(int argc, char** argv)
 	initialize_dense_track();
 	while(true) {
 		// get a new frame
-		cv::Mat featuresVect;
+		std::vector<cv::Mat > featuresVect;
 		Mat frame;
 		capture >> frame;
 		if(frame.empty())

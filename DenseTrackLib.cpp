@@ -43,7 +43,9 @@ DescInfo hogInfo, hofInfo, mbhInfo;
 
 void initialize_dense_track() {
 	InitTrackInfo(&trackInfo, track_length, init_gap);
+	//printf("init: %d %d\n", nxy_cell,nt_cell);
 	InitDescInfo(&hogInfo, 8, false, patch_size, nxy_cell, nt_cell);
+	//printf("init hog %d\n", hogInfo.dim);
 	InitDescInfo(&hofInfo, 9, true, patch_size, nxy_cell, nt_cell);
 	InitDescInfo(&mbhInfo, 8, false, patch_size, nxy_cell, nt_cell);
 
@@ -52,7 +54,38 @@ void initialize_dense_track() {
 		namedWindow("DenseTrack", 0);
 }
 
-void process_frame(Mat& frame, cv::Mat* results) {
+void process_frame(Mat& frame, std::vector<cv::Mat >* results) {
+	bool export_stats = true;
+	bool export_tracklets = true;
+	bool export_hog = true;
+	bool export_hof = true;
+	bool export_mbhx = true;
+	bool export_mbhy = true;
+	
+	if(export_stats) {
+		cv::Mat row(0,7,CV_32F);
+		results->push_back(row);
+	}
+	if(export_tracklets) {
+		cv::Mat row(0,trackInfo.length * 2,CV_32F);
+		results->push_back(row);
+	}
+	if(export_hog) {
+		cv::Mat row(0,hogInfo.dim,CV_32F);
+		results->push_back(row);
+	}
+	if(export_hof) {
+		cv::Mat row(0,hofInfo.dim,CV_32F);
+		results->push_back(row);
+	}
+	if(export_mbhx) {
+		cv::Mat row(0,mbhInfo.dim,CV_32F);
+		results->push_back(row);
+	}
+	if(export_mbhy) {
+		cv::Mat row(0,mbhInfo.dim,CV_32F);
+		results->push_back(row);
+	}
 	int i, j, c;
 	if(frame.empty())
 		return;
@@ -170,33 +203,60 @@ void process_frame(Mat& frame, cv::Mat* results) {
 			
 				float mean_x(0), mean_y(0), var_x(0), var_y(0), length(0);
 				if(IsValid(trajectory, mean_x, mean_y, var_x, var_y, length)) {
-					cv::Mat row(1,desc_size,CV_32F);
 					//printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\t", frame_num, mean_x, mean_y, var_x, var_y, length, fscales[iScale]);
-					
-					row.at<int>(0,0) =  frame_num;
-					row.at<float>(0,1) = (mean_x);
-					row.at<float>(0,2) = (mean_y);
-					row.at<float>(0,3) = (var_x);
-					row.at<float>(0,4) = (var_y);
-					row.at<float>(0,5) = (length);
-					row.at<float>(0,6) = (fscales[iScale]);
-					// output the trajectory
-					int pointer = 7;
-					for (int i = 0; i < trackInfo.length; ++i) {
-						row.at<float>(0,pointer++) = (trajectory[i].x);
-						row.at<float>(0,pointer++) = (trajectory[i].y);
+					int curr_desc = 0;
+					if(export_stats) {
+						cv::Mat row(1,7,CV_32F);
+						row.at<int>(0,0) =  frame_num;
+						row.at<float>(0,1) = (mean_x);
+						row.at<float>(0,2) = (mean_y);
+						row.at<float>(0,3) = (var_x);
+						row.at<float>(0,4) = (var_y);
+						row.at<float>(0,5) = (length);
+						row.at<float>(0,6) = (fscales[iScale]);
+						results->at(curr_desc++).push_back(row);
 					}
+					// output the trajectory
+					if(export_tracklets) {
+						cv::Mat row(1,trackInfo.length * 2,CV_32F);
+						int curr_col = 0;
+						for (int i = 0; i < trackInfo.length; ++i) {
+							row.at<float>(0,curr_col++) = (trajectory[i].x);
+							row.at<float>(0,curr_col++) = (trajectory[i].y);
+						}
+						results->at(curr_desc++).push_back(row);
+					}
+					if(export_hog) {
 					//	printf("%f\t%f\t", trajectory[i].x,trajectory[i].y);
-					pointer = AppendVectDesc(iTrack->hog, hogInfo, trackInfo, row, pointer);
-					pointer = AppendVectDesc(iTrack->hof, hofInfo, trackInfo, row, pointer);
-					pointer = AppendVectDesc(iTrack->mbhX, mbhInfo, trackInfo, row, pointer);
-					AppendVectDesc(iTrack->mbhY, mbhInfo, trackInfo, row, pointer);
+					//	printf("HOG size%d\n", hogInfo.dim);
+						cv::Mat row(1,hogInfo.dim * hogInfo.ntCells, CV_32F);
+						AppendVectDesc(iTrack->hog, hogInfo, trackInfo, row);
+						results->at(curr_desc++).push_back(row);
+					}
+					if(export_hof) {
+						cv::Mat row(1,hofInfo.dim * hofInfo.ntCells, CV_32F);
+						AppendVectDesc(iTrack->hof, hofInfo, trackInfo, row);
+						results->at(curr_desc++).push_back(row);
+					}
+
+					if(export_mbhx) {
+						cv::Mat row(1,mbhInfo.dim * mbhInfo.ntCells, CV_32F);
+						AppendVectDesc(iTrack->mbhX, mbhInfo, trackInfo, row);
+						results->at(curr_desc++).push_back(row);
+					}
+
+					if(export_mbhy) {
+						cv::Mat row(1,mbhInfo.dim * mbhInfo.ntCells, CV_32F);
+						AppendVectDesc(iTrack->mbhY, mbhInfo, trackInfo, row);
+						results->at(curr_desc++).push_back(row);
+					}
+
 					//PrintDesc(iTrack->hog, hogInfo, trackInfo);
 					//PrintDesc(iTrack->hof, hofInfo, trackInfo);
 					//PrintDesc(iTrack->mbhX, mbhInfo, trackInfo);
 					//PrintDesc(iTrack->mbhY, mbhInfo, trackInfo);
 					//printf("\n");
-					results->push_back(row);
+					//results->push_back(row);
 				}
 
 				iTrack = tracks.erase(iTrack);
@@ -306,18 +366,28 @@ bool arg_parse(int argc, char** argv)
 	return flag;
 }
 
-void printMat(cv::Mat& r) {
+void printMat(std::vector<cv::Mat >& vect) {
 	int j = 0;
-	for(int a = 0; a < r.rows; a++) {
+	int rows_count = vect.at(0).rows;
+	for(int a = 0; a < rows_count; a++) {
+		int curr_desc = 0;
+
+		cv::Mat r = vect.at(curr_desc++);
 		printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\t", r.at<int>(a, 0), r.at<float>(a,1), r.at<float>(a,2), r.at<float>(a,3), r.at<float>(a,4), r.at<float>(a,5), r.at<float>(a,6));          
-		j = 7;
+		j = 0;
+		r = vect.at(curr_desc++);
 		for(int z = 0; z < 15; z++) {
 			printf("%f\t%f\t", r.at<float>(a,j), r.at<float>(a,j+1));
 			j += 2;
 		}
-		for(int z = j; z < r.cols; z++) {
-			printf("%.7f\t", r.at<float>(a,z));
+
+		for(;curr_desc < 6; curr_desc++) {
+			cv::Mat r = vect.at(curr_desc);
+			for(int z = 0; z < r.cols; z++) {
+				printf("%.7f\t", r.at<float>(a,z));
+			}
 		}
+
 		printf("\n");
 	}
 }
