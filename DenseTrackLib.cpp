@@ -59,9 +59,9 @@ void process_frame(Mat& frame, std::vector<cv::Mat >* results) {
 	bool export_tracklets = true;
 	bool export_hog = true;
 	bool export_hof = true;
-	bool export_mbhx = true;
-	bool export_mbhy = true;
-	
+	bool export_mbhx = false;
+	bool export_mbhy = false;
+	bool export_mbh_whole = true;	
 	if(export_stats) {
 		cv::Mat row(0,7,CV_32F);
 		results->push_back(row);
@@ -84,6 +84,10 @@ void process_frame(Mat& frame, std::vector<cv::Mat >* results) {
 	}
 	if(export_mbhy) {
 		cv::Mat row(0,mbhInfo.dim,CV_32F);
+		results->push_back(row);
+	}
+	if(export_mbh_whole) {
+		cv::Mat row(0,2 * mbhInfo.dim,CV_32F);
 		results->push_back(row);
 	}
 	int i, j, c;
@@ -230,25 +234,31 @@ void process_frame(Mat& frame, std::vector<cv::Mat >* results) {
 					//	printf("%f\t%f\t", trajectory[i].x,trajectory[i].y);
 					//	printf("HOG size%d\n", hogInfo.dim);
 						cv::Mat row(1,hogInfo.dim * hogInfo.ntCells, CV_32F);
-						AppendVectDesc(iTrack->hog, hogInfo, trackInfo, row);
+						AppendVectDesc(iTrack->hog, hogInfo, trackInfo, row, 0);
 						results->at(curr_desc++).push_back(row);
 					}
 					if(export_hof) {
 						cv::Mat row(1,hofInfo.dim * hofInfo.ntCells, CV_32F);
-						AppendVectDesc(iTrack->hof, hofInfo, trackInfo, row);
+						AppendVectDesc(iTrack->hof, hofInfo, trackInfo, row, 0);
 						results->at(curr_desc++).push_back(row);
 					}
 
 					if(export_mbhx) {
 						cv::Mat row(1,mbhInfo.dim * mbhInfo.ntCells, CV_32F);
-						AppendVectDesc(iTrack->mbhX, mbhInfo, trackInfo, row);
+						AppendVectDesc(iTrack->mbhX, mbhInfo, trackInfo, row, 0);
 						results->at(curr_desc++).push_back(row);
 					}
 
 					if(export_mbhy) {
 						cv::Mat row(1,mbhInfo.dim * mbhInfo.ntCells, CV_32F);
-						AppendVectDesc(iTrack->mbhY, mbhInfo, trackInfo, row);
+						AppendVectDesc(iTrack->mbhY, mbhInfo, trackInfo, row, 0);
 						results->at(curr_desc++).push_back(row);
+					}
+					if(export_mbh_whole) {
+						cv::Mat row(1,2 * mbhInfo.dim * mbhInfo.ntCells, CV_32F);
+                                                int start_col = AppendVectDesc(iTrack->mbhX, mbhInfo, trackInfo, row, 0);
+						AppendVectDesc(iTrack->mbhY, mbhInfo, trackInfo, row, start_col);
+                                                results->at(curr_desc++).push_back(row);
 					}
 
 					//PrintDesc(iTrack->hog, hogInfo, trackInfo);
@@ -381,7 +391,7 @@ void printMat(std::vector<cv::Mat >& vect) {
 			j += 2;
 		}
 
-		for(;curr_desc < 6; curr_desc++) {
+		for(;curr_desc < 5; curr_desc++) {
 			cv::Mat r = vect.at(curr_desc);
 			for(int z = 0; z < r.cols; z++) {
 				printf("%.7f\t", r.at<float>(a,z));
