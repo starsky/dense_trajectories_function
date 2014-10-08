@@ -5,7 +5,7 @@
 using namespace cv;
 
 // get the rectangle for computing the descriptor
-void GetRect(const Point2f& point, RectInfo& rect, const int width, const int height, const DescInfo& descInfo)
+void DenseTrajectories::GetRect(const Point2f& point, RectInfo& rect, const int width, const int height, const DescInfo& descInfo)
 {
 	int x_min = descInfo.width/2;
 	int y_min = descInfo.height/2;
@@ -19,7 +19,7 @@ void GetRect(const Point2f& point, RectInfo& rect, const int width, const int he
 }
 
 // compute integral histograms for the whole image
-void BuildDescMat(const Mat& xComp, const Mat& yComp, float* desc, const DescInfo& descInfo)
+void DenseTrajectories::BuildDescMat(const Mat& xComp, const Mat& yComp, float* desc, const DescInfo& descInfo)
 {
 	float maxAngle = 360.f;
 	int nDims = descInfo.nBins;
@@ -72,7 +72,7 @@ void BuildDescMat(const Mat& xComp, const Mat& yComp, float* desc, const DescInf
 }
 
 // get a descriptor from the integral histogram
-void GetDesc(const DescMat* descMat, RectInfo& rect, DescInfo descInfo, std::vector<float>& desc, const int index)
+void DenseTrajectories::GetDesc(const DescMat* descMat, RectInfo& rect, DescInfo descInfo, std::vector<float>& desc, const int index)
 {
 	int dim = descInfo.dim;
 	int nBins = descInfo.nBins;
@@ -112,7 +112,7 @@ void GetDesc(const DescMat* descMat, RectInfo& rect, DescInfo descInfo, std::vec
 }
 
 // for HOG descriptor
-void HogComp(const Mat& img, float* desc, DescInfo& descInfo)
+void DenseTrajectories::HogComp(const Mat& img, float* desc, DescInfo& descInfo)
 {
 	Mat imgX, imgY;
 	Sobel(img, imgX, CV_32F, 1, 0, 1);
@@ -121,7 +121,7 @@ void HogComp(const Mat& img, float* desc, DescInfo& descInfo)
 }
 
 // for HOF descriptor
-void HofComp(const Mat& flow, float* desc, DescInfo& descInfo)
+void DenseTrajectories::HofComp(const Mat& flow, float* desc, DescInfo& descInfo)
 {
 	Mat flows[2];
 	split(flow, flows);
@@ -129,7 +129,7 @@ void HofComp(const Mat& flow, float* desc, DescInfo& descInfo)
 }
 
 // for MBH descriptor
-void MbhComp(const Mat& flow, float* descX, float* descY, DescInfo& descInfo)
+void DenseTrajectories::MbhComp(const Mat& flow, float* descX, float* descY, DescInfo& descInfo)
 {
 	Mat flows[2];
 	split(flow, flows);
@@ -145,7 +145,7 @@ void MbhComp(const Mat& flow, float* descX, float* descY, DescInfo& descInfo)
 }
 
 // check whether a trajectory is valid or not
-bool IsValid(std::vector<Point2f>& track, float& mean_x, float& mean_y, float& var_x, float& var_y, float& length)
+bool DenseTrajectories::IsValid(std::vector<Point2f>& track, float& mean_x, float& mean_y, float& var_x, float& var_y, float& length)
 {
 	int size = track.size();
 	float norm = 1./size;
@@ -197,7 +197,7 @@ bool IsValid(std::vector<Point2f>& track, float& mean_x, float& mean_y, float& v
 }
 
 // detect new feature points in an image without overlapping to previous points
-void DenseSample(const Mat& grey, std::vector<Point2f>& points, const double quality, const int min_distance)
+void DenseTrajectories::DenseSample(const Mat& grey, std::vector<Point2f>& points, const double quality, const int min_distance)
 {
 	int width = grey.cols/min_distance;
 	int height = grey.rows/min_distance;
@@ -241,7 +241,7 @@ void DenseSample(const Mat& grey, std::vector<Point2f>& points, const double qua
 	}
 }
 
-void InitPry(const Mat& frame, std::vector<float>& scales, std::vector<Size>& sizes)
+void DenseTrajectories::InitPry(const Mat& frame, std::vector<float>& scales, std::vector<Size>& sizes)
 {
 	int rows = frame.rows, cols = frame.cols;
 	float min_size = std::min<int>(rows, cols);
@@ -268,7 +268,7 @@ void InitPry(const Mat& frame, std::vector<float>& scales, std::vector<Size>& si
 	}
 }
 
-void BuildPry(const std::vector<Size>& sizes, const int type, std::vector<Mat>& grey_pyr)
+void DenseTrajectories::BuildPry(const std::vector<Size>& sizes, const int type, std::vector<Mat>& grey_pyr)
 {
 	int nlayers = sizes.size();
 	grey_pyr.resize(nlayers);
@@ -277,7 +277,7 @@ void BuildPry(const std::vector<Size>& sizes, const int type, std::vector<Mat>& 
 		grey_pyr[i].create(sizes[i], type);
 }
 
-void DrawTrack(const std::vector<Point2f>& point, const int index, const float scale, Mat& image)
+void DenseTrajectories::DrawTrack(const std::vector<Point2f>& point, const int index, const float scale, Mat& image)
 {
 	Point2f point0 = point[0];
 	point0 *= scale;
@@ -292,7 +292,7 @@ void DrawTrack(const std::vector<Point2f>& point, const int index, const float s
 	circle(image, point0, 2, Scalar(0,0,255), -1, 8, 0);
 }
 
-void PrintDesc(std::vector<float>& desc, DescInfo& descInfo, TrackInfo& trackInfo)
+void DenseTrajectories::PrintDesc(std::vector<float>& desc, DescInfo& descInfo, TrackInfo& trackInfo)
 {
 	int tStride = cvFloor(trackInfo.length/descInfo.ntCells);
 	float norm = 1./float(tStride);
@@ -308,7 +308,7 @@ void PrintDesc(std::vector<float>& desc, DescInfo& descInfo, TrackInfo& trackInf
 	}
 }
 
-int AppendVectDesc(std::vector<float>& desc, DescInfo& descInfo, TrackInfo& trackInfo, cv::Mat& row, int start_column)
+int DenseTrajectories::AppendVectDesc(std::vector<float>& desc, DescInfo& descInfo, TrackInfo& trackInfo, cv::Mat& row, int start_column)
 {
 	int tStride = cvFloor(trackInfo.length/descInfo.ntCells);
 	float norm = 1./float(tStride);

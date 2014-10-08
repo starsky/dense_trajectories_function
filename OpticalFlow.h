@@ -434,7 +434,7 @@ void FarnebackPolyExpPyr(const Mat& img, std::vector<Mat>& poly_exp_pyr,
 }
 
 void calcOpticalFlowFarneback(std::vector<Mat>& prev_poly_exp_pyr, std::vector<Mat>& poly_exp_pyr,
-                              std::vector<Mat>& flow_pyr, int winsize, int iterations)
+                              std::vector<Mat>& flow_pyr, int winsize, int iterations, float scale_stride)
 {
     int i, k;
     Mat prevFlow, flow;

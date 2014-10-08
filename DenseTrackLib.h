@@ -37,29 +37,6 @@ int init_gap = 1;
 int track_length = 15;
 */
 
-// parameters for rejecting trajectory
-const float min_var = sqrt(3);
-const float max_var = 50;
-const float max_dis = 20;
-
-extern int start_frame;
-extern int end_frame;
-extern int scale_num;
-const float scale_stride = sqrt(2);
-
-// parameters for descriptors
-extern int patch_size;
-extern int nxy_cell;
-extern int nt_cell;
-extern float epsilon;
-const float min_flow = 0.4;
-
-// parameters for tracking
-extern double quality;
-extern int min_distance;
-extern int init_gap;
-extern int track_length;
-extern int desc_size;
 
 typedef struct {
 	int x;       // top left corner
@@ -124,10 +101,66 @@ public:
     }
 };
 
-void initialize_dense_track();
-void process_frame(Mat& frame, std::vector<cv::Mat >* results);
-bool arg_parse(int argc, char** argv);
-void printVect(std::vector< std::vector< float > >& featuresVect);
-void printMat(std::vector<cv::Mat >& featuresVect);
+class DenseTrajectories {
+	private:
+		// parameters for rejecting trajectory
+		const float min_var = sqrt(3);
+		const float max_var = 50;
+		const float max_dis = 20;
+		const float scale_stride = sqrt(2);
+		const float min_flow = 0.4;
+
+/**********************************************************************/
+		int start_frame = 0;
+		int end_frame = INT_MAX;
+		int scale_num = 8;
+
+		// parameters for descriptors
+		int patch_size = 32;
+		int nxy_cell = 2;
+		int nt_cell = 3;
+		float epsilon = 0.05;
+		 // parameters for tracking
+		double quality = 0.001;
+		int min_distance = 5;
+		int init_gap = 1;
+		int track_length = 15;
+		int desc_size = 7 + track_length * 2 + 8 * nxy_cell * nxy_cell * nt_cell + 9 * nxy_cell * nxy_cell * nt_cell + 8 * nxy_cell * nxy_cell * nt_cell + 8 * nxy_cell * nxy_cell * nt_cell;
+
+		int show_track = 0; // set show_track = 1, if you want to visualize the trajectories
+
+		Mat image, prev_grey, grey;
+
+		std::vector<float> fscales{std::vector<float>(0)};
+		std::vector<Size> sizes{std::vector<Size>(0)};
+
+		std::vector<Mat> prev_grey_pyr{std::vector<Mat>(0)}, grey_pyr{std::vector<Mat>(0)}, flow_pyr{std::vector<Mat>(0)};
+		std::vector<Mat> prev_poly_pyr{std::vector<Mat>(0)}, poly_pyr{std::vector<Mat>(0)}; // for optical flow
+
+		std::vector<std::list<Track> > xyScaleTracks;
+		int init_counter = 0; // indicate when to detect new feature points
+		int frame_num = 0;
+		TrackInfo trackInfo;
+		DescInfo hogInfo, hofInfo, mbhInfo;
+	public:
+		void initialize_dense_track();
+		void process_frame(Mat& frame, std::vector<cv::Mat >* results);
+		bool arg_parse(int argc, char** argv);
+		void printVect(std::vector< std::vector< float > >& featuresVect);
+		void printMat(std::vector<cv::Mat >& featuresVect);
+		void GetRect(const Point2f& point, RectInfo& rect, const int width, const int height, const DescInfo& descInfo);
+		void BuildDescMat(const Mat& xComp, const Mat& yComp, float* desc, const DescInfo& descInfo);
+		void GetDesc(const DescMat* descMat, RectInfo& rect, DescInfo descInfo, std::vector<float>& desc, const int index);
+		void HogComp(const Mat& img, float* desc, DescInfo& descInfo);
+		void HofComp(const Mat& flow, float* desc, DescInfo& descInfo);
+		void MbhComp(const Mat& flow, float* descX, float* descY, DescInfo& descInfo);
+		void DenseSample(const Mat& grey, std::vector<Point2f>& points, const double quality, const int min_distance);
+		void InitPry(const Mat& frame, std::vector<float>& scales, std::vector<Size>& sizes);
+		void BuildPry(const std::vector<Size>& sizes, const int type, std::vector<Mat>& grey_pyr);
+		void DrawTrack(const std::vector<Point2f>& point, const int index, const float scale, Mat& image);
+		void PrintDesc(std::vector<float>& desc, DescInfo& descInfo, TrackInfo& trackInfo);
+		int AppendVectDesc(std::vector<float>& desc, DescInfo& descInfo, TrackInfo& trackInfo, cv::Mat& row, int start_column);
+		bool IsValid(std::vector<Point2f>& track, float& mean_x, float& mean_y, float& var_x, float& var_y, float& length);
+};
 
 #endif /*DENSETRACK_H_*/

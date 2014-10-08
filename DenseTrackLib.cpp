@@ -7,41 +7,8 @@
 
 using namespace cv;
 
-int start_frame = 0;
-int end_frame = INT_MAX;
-int scale_num = 8;
 
-// parameters for descriptors
-int patch_size = 32;
-int nxy_cell = 2;
-int nt_cell = 3;
-float epsilon = 0.05;
-// parameters for tracking
-double quality = 0.001;
-int min_distance = 5;
-int init_gap = 1;
-int track_length = 15;
-int desc_size = 7 + track_length * 2 + 8 * nxy_cell * nxy_cell * nt_cell + 9 * nxy_cell * nxy_cell * nt_cell + 8 * nxy_cell * nxy_cell * nt_cell + 8 * nxy_cell * nxy_cell * nt_cell; 
-
-int show_track = 0; // set show_track = 1, if you want to visualize the trajectories
-	
-Mat image, prev_grey, grey;
-
-//Global variables (soo ugly :( )
-std::vector<float> fscales(0);
-std::vector<Size> sizes(0);
-
-std::vector<Mat> prev_grey_pyr(0), grey_pyr(0), flow_pyr(0);
-std::vector<Mat> prev_poly_pyr(0), poly_pyr(0); // for optical flow
-
-std::vector<std::list<Track> > xyScaleTracks;
-int init_counter = 0; // indicate when to detect new feature points
-int frame_num = 0;
-TrackInfo trackInfo;
-DescInfo hogInfo, hofInfo, mbhInfo;
-
-
-void initialize_dense_track() {
+void DenseTrajectories::initialize_dense_track() {
 	InitTrackInfo(&trackInfo, track_length, init_gap);
 	//printf("init: %d %d\n", nxy_cell,nt_cell);
 	InitDescInfo(&hogInfo, 8, false, patch_size, nxy_cell, nt_cell);
@@ -54,7 +21,7 @@ void initialize_dense_track() {
 		namedWindow("DenseTrack", 0);
 }
 
-void process_frame(Mat& frame, std::vector<cv::Mat >* results) {
+void DenseTrajectories::process_frame(Mat& frame, std::vector<cv::Mat >* results) {
 	bool export_stats = true;
 	bool export_tracklets = true;
 	bool export_hog = true;
@@ -147,7 +114,7 @@ void process_frame(Mat& frame, std::vector<cv::Mat >* results) {
 
 	// compute optical flow for all scales once
 	my::FarnebackPolyExpPyr(grey, poly_pyr, fscales, 7, 1.5);
-	my::calcOpticalFlowFarneback(prev_poly_pyr, poly_pyr, flow_pyr, 10, 2);
+	my::calcOpticalFlowFarneback(prev_poly_pyr, poly_pyr, flow_pyr, 10, 2, scale_stride);
 
 	for(int iScale = 0; iScale < scale_num; iScale++) {
 		if(iScale == 0)
@@ -327,7 +294,7 @@ void usage()
 	fprintf(stderr, "  -I [initial gap]          The gap for re-sampling feature points (default: 1 frame)\n");
 }
 
-bool arg_parse(int argc, char** argv)
+bool DenseTrajectories::arg_parse(int argc, char** argv)
 {
 	int c;
 	bool flag = false;
@@ -376,7 +343,7 @@ bool arg_parse(int argc, char** argv)
 	return flag;
 }
 
-void printMat(std::vector<cv::Mat >& vect) {
+void DenseTrajectories::printMat(std::vector<cv::Mat >& vect) {
 	int j = 0;
 	int rows_count = vect.at(0).rows;
 	for(int a = 0; a < rows_count; a++) {
@@ -403,7 +370,7 @@ void printMat(std::vector<cv::Mat >& vect) {
 }
 
 
-void printVect(std::vector< std::vector< float > >& featuresVect) {
+void DenseTrajectories::printVect(std::vector< std::vector< float > >& featuresVect) {
 	int j = 0;
 	for( std::vector< std::vector<float> >::const_iterator i = featuresVect.begin(); i != featuresVect.end(); ++i) {
 		std::vector<float> r = *i;
