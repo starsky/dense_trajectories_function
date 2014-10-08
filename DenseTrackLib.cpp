@@ -22,13 +22,6 @@ void DenseTrajectories::initialize_dense_track() {
 }
 
 void DenseTrajectories::process_frame(Mat& frame, std::vector<cv::Mat >* results) {
-	bool export_stats = true;
-	bool export_tracklets = true;
-	bool export_hog = true;
-	bool export_hof = true;
-	bool export_mbhx = false;
-	bool export_mbhy = false;
-	bool export_mbh_whole = true;	
 	if(export_stats) {
 		cv::Mat row(0,7,CV_32F);
 		results->push_back(row);
@@ -57,6 +50,7 @@ void DenseTrajectories::process_frame(Mat& frame, std::vector<cv::Mat >* results
 		cv::Mat row(0,2 * mbhInfo.dim,CV_32F);
 		results->push_back(row);
 	}
+
 	int i, j, c;
 	if(frame.empty())
 		return;
@@ -174,7 +168,6 @@ void DenseTrajectories::process_frame(Mat& frame, std::vector<cv::Mat >* results
 			
 				float mean_x(0), mean_y(0), var_x(0), var_y(0), length(0);
 				if(IsValid(trajectory, mean_x, mean_y, var_x, var_y, length)) {
-					//printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\t", frame_num, mean_x, mean_y, var_x, var_y, length, fscales[iScale]);
 					int curr_desc = 0;
 					if(export_stats) {
 						cv::Mat row(1,7,CV_32F);
@@ -198,8 +191,6 @@ void DenseTrajectories::process_frame(Mat& frame, std::vector<cv::Mat >* results
 						results->at(curr_desc++).push_back(row);
 					}
 					if(export_hog) {
-					//	printf("%f\t%f\t", trajectory[i].x,trajectory[i].y);
-					//	printf("HOG size%d\n", hogInfo.dim);
 						cv::Mat row(1,hogInfo.dim * hogInfo.ntCells, CV_32F);
 						AppendVectDesc(iTrack->hog, hogInfo, trackInfo, row, 0);
 						results->at(curr_desc++).push_back(row);
@@ -228,12 +219,6 @@ void DenseTrajectories::process_frame(Mat& frame, std::vector<cv::Mat >* results
                                                 results->at(curr_desc++).push_back(row);
 					}
 
-					//PrintDesc(iTrack->hog, hogInfo, trackInfo);
-					//PrintDesc(iTrack->hof, hofInfo, trackInfo);
-					//PrintDesc(iTrack->mbhX, mbhInfo, trackInfo);
-					//PrintDesc(iTrack->mbhY, mbhInfo, trackInfo);
-					//printf("\n");
-					//results->push_back(row);
 				}
 
 				iTrack = tracks.erase(iTrack);
@@ -368,48 +353,3 @@ void DenseTrajectories::printMat(std::vector<cv::Mat >& vect) {
 		printf("\n");
 	}
 }
-
-
-void DenseTrajectories::printVect(std::vector< std::vector< float > >& featuresVect) {
-	int j = 0;
-	for( std::vector< std::vector<float> >::const_iterator i = featuresVect.begin(); i != featuresVect.end(); ++i) {
-		std::vector<float> r = *i;
-		printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\t", (int) r[0], r[1], r[2], r[3], r[4], r[5], r[6]);          
-		j = 7;
-		for(int z = 0; z < 15; z++) {
-			printf("%f\t%f\t", r[j], r[j+1]);
-			j += 2;
-		}
-		for(int z = j; z < r.size(); z++) {
-			printf("%.7f\t", r[z]);
-		}
-		printf("\n");
-	}
-}
-/*
-int main(int argc, char** argv)
-{
-	VideoCapture capture;
-	char* video = argv[1];
-	int flag = arg_parse(argc, argv);
-	capture.open(video);
-
-	if(!capture.isOpened()) {
-		fprintf(stderr, "Could not initialize capturing..\n");
-		return -1;
-	}
-	initialize_dense_track();
-	while(true) {
-		// get a new frame
-		Mat frame;
-		capture >> frame;
-		if(frame.empty())
-			break;
-		process_frame(frame);		
-	}
-
-	if( show_track == 1 )
-		destroyWindow("DenseTrack");
-
-	return 0;
-}*/

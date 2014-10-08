@@ -292,6 +292,7 @@ void DenseTrajectories::DrawTrack(const std::vector<Point2f>& point, const int i
 	circle(image, point0, 2, Scalar(0,0,255), -1, 8, 0);
 }
 
+/*
 void DenseTrajectories::PrintDesc(std::vector<float>& desc, DescInfo& descInfo, TrackInfo& trackInfo)
 {
 	int tStride = cvFloor(trackInfo.length/descInfo.ntCells);
@@ -307,6 +308,7 @@ void DenseTrajectories::PrintDesc(std::vector<float>& desc, DescInfo& descInfo, 
 			printf("%.7f\t", vec[j]*norm);
 	}
 }
+*/
 
 int DenseTrajectories::AppendVectDesc(std::vector<float>& desc, DescInfo& descInfo, TrackInfo& trackInfo, cv::Mat& row, int start_column)
 {

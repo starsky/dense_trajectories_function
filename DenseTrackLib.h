@@ -110,7 +110,6 @@ class DenseTrajectories {
 		const float scale_stride = sqrt(2);
 		const float min_flow = 0.4;
 
-/**********************************************************************/
 		int start_frame = 0;
 		int end_frame = INT_MAX;
 		int scale_num = 8;
@@ -125,23 +124,27 @@ class DenseTrajectories {
 		int min_distance = 5;
 		int init_gap = 1;
 		int track_length = 15;
-		int desc_size = 7 + track_length * 2 + 8 * nxy_cell * nxy_cell * nt_cell + 9 * nxy_cell * nxy_cell * nt_cell + 8 * nxy_cell * nxy_cell * nt_cell + 8 * nxy_cell * nxy_cell * nt_cell;
-
 		int show_track = 0; // set show_track = 1, if you want to visualize the trajectories
 
 		Mat image, prev_grey, grey;
-
 		std::vector<float> fscales{std::vector<float>(0)};
 		std::vector<Size> sizes{std::vector<Size>(0)};
-
 		std::vector<Mat> prev_grey_pyr{std::vector<Mat>(0)}, grey_pyr{std::vector<Mat>(0)}, flow_pyr{std::vector<Mat>(0)};
 		std::vector<Mat> prev_poly_pyr{std::vector<Mat>(0)}, poly_pyr{std::vector<Mat>(0)}; // for optical flow
-
 		std::vector<std::list<Track> > xyScaleTracks;
+
 		int init_counter = 0; // indicate when to detect new feature points
 		int frame_num = 0;
 		TrackInfo trackInfo;
 		DescInfo hogInfo, hofInfo, mbhInfo;
+		
+		bool export_stats = true;
+		bool export_tracklets = true;
+		bool export_hog = true;
+		bool export_hof = true;
+		bool export_mbhx = false;
+		bool export_mbhy = false;
+		bool export_mbh_whole = true;	
 	public:
 		void initialize_dense_track();
 		void process_frame(Mat& frame, std::vector<cv::Mat >* results);
@@ -158,7 +161,6 @@ class DenseTrajectories {
 		void InitPry(const Mat& frame, std::vector<float>& scales, std::vector<Size>& sizes);
 		void BuildPry(const std::vector<Size>& sizes, const int type, std::vector<Mat>& grey_pyr);
 		void DrawTrack(const std::vector<Point2f>& point, const int index, const float scale, Mat& image);
-		void PrintDesc(std::vector<float>& desc, DescInfo& descInfo, TrackInfo& trackInfo);
 		int AppendVectDesc(std::vector<float>& desc, DescInfo& descInfo, TrackInfo& trackInfo, cv::Mat& row, int start_column);
 		bool IsValid(std::vector<Point2f>& track, float& mean_x, float& mean_y, float& var_x, float& var_y, float& length);
 };
