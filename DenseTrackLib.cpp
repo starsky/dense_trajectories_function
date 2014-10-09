@@ -290,68 +290,74 @@ void DenseTrajectories::printMat(const std::vector<cv::Mat >& vect) const {
 	}
 }
 
-void DenseTrajectories::set_start_frame(int start_frame) {
+void DenseTrajectoriesBuilder::set_start_frame(int start_frame) {
 	this->start_frame = start_frame;
 }
 
-void DenseTrajectories::set_end_frame(int end_frame) {
+void DenseTrajectoriesBuilder::set_end_frame(int end_frame) {
 	this->end_frame = end_frame;
 }
 
-void DenseTrajectories::set_track_length(int track_length) {
+void DenseTrajectoriesBuilder::set_track_length(int track_length) {
 	this->track_length = track_length;
 }
 
-void DenseTrajectories::set_min_distance(int min_distance) {
+void DenseTrajectoriesBuilder::set_min_distance(int min_distance) {
 	this->min_distance = min_distance;
 }
 
-void DenseTrajectories::set_patch_size(int patch_size) {
+void DenseTrajectoriesBuilder::set_patch_size(int patch_size) {
 	this->patch_size = patch_size;
 }
 
-void DenseTrajectories::set_nxy_cell(int nxy_cell) {
+void DenseTrajectoriesBuilder::set_nxy_cell(int nxy_cell) {
 	this->nxy_cell = nxy_cell;
 }
 
-void DenseTrajectories::set_nt_cell(int nt_cell) {
+void DenseTrajectoriesBuilder::set_nt_cell(int nt_cell) {
 	this->nt_cell = nt_cell;
 }
 
-void DenseTrajectories::set_scale_num(int scale_num) {
+void DenseTrajectoriesBuilder::set_scale_num(int scale_num) {
 	this->scale_num = scale_num;
 }
 
-void DenseTrajectories::set_init_gap(int init_gap) {
+void DenseTrajectoriesBuilder::set_init_gap(int init_gap) {
 	this->init_gap = init_gap;
 }
 
-void DenseTrajectories::set_export_header(bool use_header) {
+void DenseTrajectoriesBuilder::set_export_header(bool use_header) {
 	this->export_stats = use_header;
 }
 
-void DenseTrajectories::set_export_trajectories(bool export_trajectories) {
+void DenseTrajectoriesBuilder::set_export_trajectories(bool export_trajectories) {
 	this->export_tracklets = export_trajectories;
 }
 
-void DenseTrajectories::set_export_hog(bool export_hog) {
+void DenseTrajectoriesBuilder::set_export_hog(bool export_hog) {
 	this->export_hog = export_hog;
 }
 
-void DenseTrajectories::set_export_hof(bool export_hof) {
+void DenseTrajectoriesBuilder::set_export_hof(bool export_hof) {
 	this->export_hof = export_hof;
 }
 
-void DenseTrajectories::set_export_mbhx(bool export_mbhx) {
+void DenseTrajectoriesBuilder::set_export_mbhx(bool export_mbhx) {
 	this->export_mbhx = export_mbhx;
 }
 
-void DenseTrajectories::set_export_mbhy(bool export_mbhy) {
+void DenseTrajectoriesBuilder::set_export_mbhy(bool export_mbhy) {
 	this->export_mbhy = export_mbhy;
 }
 
-void DenseTrajectories::set_export_mbh(bool export_mbh) {
+void DenseTrajectoriesBuilder::set_export_mbh(bool export_mbh) {
 	this->export_mbh_whole = export_mbh;
 }
 
+DenseTrajectories& DenseTrajectoriesBuilder::create() {
+	DenseTrajectories* dt = new DenseTrajectories(start_frame, end_frame, track_length, min_distance,
+					patch_size, nxy_cell, nt_cell, scale_num, init_gap, export_stats, export_tracklets,
+					export_hog, export_hof, export_mbhx, export_mbhy, export_mbh_whole);
+	return *dt;
+}
 

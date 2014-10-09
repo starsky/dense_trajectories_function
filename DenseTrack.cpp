@@ -1,20 +1,20 @@
 #include "DenseTrackLib.h"
 #include <time.h>
 
-bool arg_parse(int argc, char** argv, DenseTrajectories& dt);
+bool arg_parse(int argc, char** argv, DenseTrajectoriesBuilder& dt);
 
 int main(int argc, char** argv)
 {
 	VideoCapture capture;
-	DenseTrajectories processor;
+	DenseTrajectoriesBuilder builder;
+	int flag = arg_parse(argc, argv, builder);
 	char* video = argv[1];
-	int flag = arg_parse(argc, argv, processor);
 	capture.open(video);
 	if(!capture.isOpened()) {
 		fprintf(stderr, "Could not initialize capturing..\n");
 		return -1;
 	}
-	processor.initialize_dense_track();
+	DenseTrajectories& processor = builder.create();
 	while(true) {
 		// get a new frame
 		std::vector<cv::Mat > featuresVect;
@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 		processor.process_frame(frame, &featuresVect);
 		processor.printMat(featuresVect);
 	}
-
+	delete &processor;
 	return 0;
 }
 
@@ -46,7 +46,7 @@ void usage()
 	fprintf(stderr, "  -I [initial gap]          The gap for re-sampling feature points (default: 1 frame)\n");
 }
 
-bool arg_parse(int argc, char** argv, DenseTrajectories& dt) {
+bool arg_parse(int argc, char** argv, DenseTrajectoriesBuilder& dt) {
 	int c;
 	bool flag = false;
 	char* executable = basename(argv[0]);

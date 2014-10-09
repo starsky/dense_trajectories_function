@@ -100,8 +100,10 @@ public:
         point[index] = point_;
     }
 };
+class DenseTrajectoriesBuilder;
 
 class DenseTrajectories {
+	friend class DenseTrajectoriesBuilder;
 	private:
 		// parameters for rejecting trajectory
 		const float min_var = sqrt(3);
@@ -158,10 +160,58 @@ class DenseTrajectories {
 		void DrawTrack(const std::vector<Point2f>& point, const int index, const float scale, Mat& image);
 		int AppendVectDesc(std::vector<float>& desc, DescInfo& descInfo, TrackInfo& trackInfo, cv::Mat& row, int start_column);
 		bool IsValid(std::vector<Point2f>& track, float& mean_x, float& mean_y, float& var_x, float& var_y, float& length);
-	public:
+	private:
+		DenseTrajectories(int in_start_frame, int in_end_frame, int in_track_length, int in_min_distance,
+			int in_patch_size, int in_nxy_cell, int in_nt_cell, int in_scale_num, int in_init_gap,
+			bool in_export_header, bool in_export_trajectories, bool in_export_hog, bool in_export_hof,
+			bool in_export_mbhx, bool in_export_mbhy, bool in_export_mbh) : 
+			start_frame(in_start_frame), 
+			end_frame(in_end_frame),
+			track_length(in_track_length),
+			min_distance(in_min_distance),
+			patch_size(in_patch_size),
+			nxy_cell(in_nxy_cell),
+			nt_cell(in_nt_cell),
+			scale_num(in_scale_num),
+			init_gap(in_init_gap),
+			export_stats(in_export_header),
+			export_tracklets(in_export_trajectories),
+			export_hog(in_export_hog),
+			export_hof(in_export_hof),
+			export_mbhx(in_export_mbhx),
+			export_mbhy(in_export_mbhy),
+			export_mbh_whole(in_export_mbh) {
+		
+			initialize_dense_track();
+		}
 		void initialize_dense_track();
+	public:
 		void process_frame(const Mat& frame, std::vector<cv::Mat >* results);
 		void printMat(const std::vector<cv::Mat >& featuresVect) const;
+	};
+
+class DenseTrajectoriesBuilder {
+	private:
+		int start_frame = 0;
+		int end_frame = INT_MAX;
+		int scale_num = 8;
+		// parameters for descriptors
+		int patch_size = 32;
+		int nxy_cell = 2;
+		int nt_cell = 3;
+		//parameters for tracking
+		int min_distance = 5;
+		int init_gap = 1;
+		int track_length = 15;
+		//export controll options
+		bool export_stats = true;
+		bool export_tracklets = true;
+		bool export_hog = true;
+		bool export_hof = true;
+		bool export_mbhx = false;
+		bool export_mbhy = false;
+		bool export_mbh_whole = true;	
+	public:
 		void set_start_frame(int start_frame);
 		void set_end_frame(int end_frame);
 		void set_track_length(int track_length);
@@ -178,6 +228,6 @@ class DenseTrajectories {
 		void set_export_mbhx(bool export_mbhx);
 		void set_export_mbhy(bool export_mbhy);
 		void set_export_mbh(bool export_mbh);
+		DenseTrajectories& create();
 };
-
 #endif /*DENSETRACK_H_*/
