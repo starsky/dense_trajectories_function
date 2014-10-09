@@ -2,12 +2,13 @@
 #include <time.h>
 
 bool arg_parse(int argc, char** argv, DenseTrajectoriesBuilder& dt);
+void usage();
 
 int main(int argc, char** argv)
 {
 	VideoCapture capture;
 	DenseTrajectoriesBuilder builder;
-	int flag = arg_parse(argc, argv, builder);
+	arg_parse(argc, argv, builder);
 	char* video = argv[1];
 	capture.open(video);
 	if(!capture.isOpened()) {
@@ -22,7 +23,7 @@ int main(int argc, char** argv)
 		capture >> frame;
 		if(frame.empty())
 			break;
-		processor.process_frame(frame, &featuresVect);
+		processor.process_frame(frame, featuresVect);
 		processor.printMat(featuresVect);
 	}
 	delete &processor;

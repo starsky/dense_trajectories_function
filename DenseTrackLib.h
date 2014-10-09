@@ -17,26 +17,6 @@
 #include <string>
 
 using namespace cv;
-/*
-int start_frame = 0;
-int end_frame = INT_MAX;
-int scale_num = 8;
-const float scale_stride = sqrt(2);
-
-// parameters for descriptors
-int patch_size = 32;
-int nxy_cell = 2;
-int nt_cell = 3;
-float epsilon = 0.05;
-const float min_flow = 0.4;
-
-// parameters for tracking
-double quality = 0.001;
-int min_distance = 5;
-int init_gap = 1;
-int track_length = 15;
-*/
-
 
 typedef struct {
 	int x;       // top left corner
@@ -100,6 +80,7 @@ public:
         point[index] = point_;
     }
 };
+
 class DenseTrajectoriesBuilder;
 
 class DenseTrajectories {
@@ -165,28 +146,18 @@ class DenseTrajectories {
 			int in_patch_size, int in_nxy_cell, int in_nt_cell, int in_scale_num, int in_init_gap,
 			bool in_export_header, bool in_export_trajectories, bool in_export_hog, bool in_export_hof,
 			bool in_export_mbhx, bool in_export_mbhy, bool in_export_mbh) : 
-			start_frame(in_start_frame), 
-			end_frame(in_end_frame),
-			track_length(in_track_length),
-			min_distance(in_min_distance),
-			patch_size(in_patch_size),
-			nxy_cell(in_nxy_cell),
-			nt_cell(in_nt_cell),
-			scale_num(in_scale_num),
-			init_gap(in_init_gap),
-			export_stats(in_export_header),
-			export_tracklets(in_export_trajectories),
-			export_hog(in_export_hog),
-			export_hof(in_export_hof),
-			export_mbhx(in_export_mbhx),
-			export_mbhy(in_export_mbhy),
-			export_mbh_whole(in_export_mbh) {
+			start_frame(in_start_frame), end_frame(in_end_frame), track_length(in_track_length),
+			min_distance(in_min_distance), patch_size(in_patch_size), nxy_cell(in_nxy_cell),
+			nt_cell(in_nt_cell), scale_num(in_scale_num), init_gap(in_init_gap),
+			export_stats(in_export_header),	export_tracklets(in_export_trajectories),
+			export_hog(in_export_hog), export_hof(in_export_hof), export_mbhx(in_export_mbhx),
+			export_mbhy(in_export_mbhy), export_mbh_whole(in_export_mbh) {
 		
 			initialize_dense_track();
 		}
 		void initialize_dense_track();
 	public:
-		void process_frame(const Mat& frame, std::vector<cv::Mat >* results);
+		void process_frame(const Mat& frame, std::vector<cv::Mat >& results);
 		void printMat(const std::vector<cv::Mat >& featuresVect) const;
 	};
 

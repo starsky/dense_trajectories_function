@@ -76,7 +76,7 @@ void DenseTrajectories::GetDesc(const DescMat* descMat, RectInfo& rect, DescInfo
 {
 	int dim = descInfo.dim;
 	int nBins = descInfo.nBins;
-	int height = descMat->height;
+	//int height = descMat->height;
 	int width = descMat->width;
 
 	int xStride = rect.width/descInfo.nxCells;
@@ -213,7 +213,7 @@ void DenseTrajectories::DenseSample(const Mat& grey, std::vector<Point2f>& point
 	int x_max = min_distance*width;
 	int y_max = min_distance*height;
 
-	for(int i = 0; i < points.size(); i++) {
+	for(unsigned int i = 0; i < points.size(); i++) {
 		Point2f point = points[i];
 		int x = cvFloor(point.x);
 		int y = cvFloor(point.y);

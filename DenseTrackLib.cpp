@@ -21,37 +21,38 @@ void DenseTrajectories::initialize_dense_track() {
 		namedWindow("DenseTrack", 0);
 }
 
-void DenseTrajectories::process_frame(const Mat& frame, std::vector<cv::Mat >* results) {
+void DenseTrajectories::process_frame(const Mat& frame, std::vector<cv::Mat >& results) {
 	if(export_stats) {
 		cv::Mat row(0,7,CV_32F);
-		results->push_back(row);
+		results.push_back(row);
 	}
 	if(export_tracklets) {
 		cv::Mat row(0,trackInfo.length * 2,CV_32F);
-		results->push_back(row);
+		results.push_back(row);
 	}
 	if(export_hog) {
 		cv::Mat row(0,hogInfo.dim,CV_32F);
-		results->push_back(row);
+		results.push_back(row);
 	}
 	if(export_hof) {
 		cv::Mat row(0,hofInfo.dim,CV_32F);
-		results->push_back(row);
+		results.push_back(row);
 	}
 	if(export_mbhx) {
 		cv::Mat row(0,mbhInfo.dim,CV_32F);
-		results->push_back(row);
+		results.push_back(row);
 	}
 	if(export_mbhy) {
 		cv::Mat row(0,mbhInfo.dim,CV_32F);
-		results->push_back(row);
+		results.push_back(row);
 	}
 	if(export_mbh_whole) {
 		cv::Mat row(0,2 * mbhInfo.dim,CV_32F);
-		results->push_back(row);
+		results.push_back(row);
 	}
 
-	int i, j, c;
+	unsigned int i;
+	int c; //, j, c;
 	if(frame.empty())
 		return;
 
@@ -178,7 +179,7 @@ void DenseTrajectories::process_frame(const Mat& frame, std::vector<cv::Mat >* r
 						row.at<float>(0,4) = (var_y);
 						row.at<float>(0,5) = (length);
 						row.at<float>(0,6) = (fscales[iScale]);
-						results->at(curr_desc++).push_back(row);
+						results.at(curr_desc++).push_back(row);
 					}
 					// output the trajectory
 					if(export_tracklets) {
@@ -188,35 +189,35 @@ void DenseTrajectories::process_frame(const Mat& frame, std::vector<cv::Mat >* r
 							row.at<float>(0,curr_col++) = (trajectory[i].x);
 							row.at<float>(0,curr_col++) = (trajectory[i].y);
 						}
-						results->at(curr_desc++).push_back(row);
+						results.at(curr_desc++).push_back(row);
 					}
 					if(export_hog) {
 						cv::Mat row(1,hogInfo.dim * hogInfo.ntCells, CV_32F);
 						AppendVectDesc(iTrack->hog, hogInfo, trackInfo, row, 0);
-						results->at(curr_desc++).push_back(row);
+						results.at(curr_desc++).push_back(row);
 					}
 					if(export_hof) {
 						cv::Mat row(1,hofInfo.dim * hofInfo.ntCells, CV_32F);
 						AppendVectDesc(iTrack->hof, hofInfo, trackInfo, row, 0);
-						results->at(curr_desc++).push_back(row);
+						results.at(curr_desc++).push_back(row);
 					}
 
 					if(export_mbhx) {
 						cv::Mat row(1,mbhInfo.dim * mbhInfo.ntCells, CV_32F);
 						AppendVectDesc(iTrack->mbhX, mbhInfo, trackInfo, row, 0);
-						results->at(curr_desc++).push_back(row);
+						results.at(curr_desc++).push_back(row);
 					}
 
 					if(export_mbhy) {
 						cv::Mat row(1,mbhInfo.dim * mbhInfo.ntCells, CV_32F);
 						AppendVectDesc(iTrack->mbhY, mbhInfo, trackInfo, row, 0);
-						results->at(curr_desc++).push_back(row);
+						results.at(curr_desc++).push_back(row);
 					}
 					if(export_mbh_whole) {
 						cv::Mat row(1,2 * mbhInfo.dim * mbhInfo.ntCells, CV_32F);
                                                 int start_col = AppendVectDesc(iTrack->mbhX, mbhInfo, trackInfo, row, 0);
 						AppendVectDesc(iTrack->mbhY, mbhInfo, trackInfo, row, start_col);
-                                                results->at(curr_desc++).push_back(row);
+                                                results.at(curr_desc++).push_back(row);
 					}
 
 				}
