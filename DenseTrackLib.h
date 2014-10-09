@@ -145,12 +145,7 @@ class DenseTrajectories {
 		bool export_mbhx = false;
 		bool export_mbhy = false;
 		bool export_mbh_whole = true;	
-	public:
-		void initialize_dense_track();
-		void process_frame(Mat& frame, std::vector<cv::Mat >* results);
-		bool arg_parse(int argc, char** argv);
-		void printVect(std::vector< std::vector< float > >& featuresVect);
-		void printMat(std::vector<cv::Mat >& featuresVect);
+	private:
 		void GetRect(const Point2f& point, RectInfo& rect, const int width, const int height, const DescInfo& descInfo);
 		void BuildDescMat(const Mat& xComp, const Mat& yComp, float* desc, const DescInfo& descInfo);
 		void GetDesc(const DescMat* descMat, RectInfo& rect, DescInfo descInfo, std::vector<float>& desc, const int index);
@@ -163,6 +158,10 @@ class DenseTrajectories {
 		void DrawTrack(const std::vector<Point2f>& point, const int index, const float scale, Mat& image);
 		int AppendVectDesc(std::vector<float>& desc, DescInfo& descInfo, TrackInfo& trackInfo, cv::Mat& row, int start_column);
 		bool IsValid(std::vector<Point2f>& track, float& mean_x, float& mean_y, float& var_x, float& var_y, float& length);
+	public:
+		void initialize_dense_track();
+		void process_frame(const Mat& frame, std::vector<cv::Mat >* results);
+		void printMat(const std::vector<cv::Mat >& featuresVect) const;
 		void set_start_frame(int start_frame);
 		void set_end_frame(int end_frame);
 		void set_track_length(int track_length);

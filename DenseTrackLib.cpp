@@ -21,7 +21,7 @@ void DenseTrajectories::initialize_dense_track() {
 		namedWindow("DenseTrack", 0);
 }
 
-void DenseTrajectories::process_frame(Mat& frame, std::vector<cv::Mat >* results) {
+void DenseTrajectories::process_frame(const Mat& frame, std::vector<cv::Mat >* results) {
 	if(export_stats) {
 		cv::Mat row(0,7,CV_32F);
 		results->push_back(row);
@@ -264,7 +264,7 @@ void DenseTrajectories::process_frame(Mat& frame, std::vector<cv::Mat >* results
 
 
 
-void DenseTrajectories::printMat(std::vector<cv::Mat >& vect) {
+void DenseTrajectories::printMat(const std::vector<cv::Mat >& vect) const {
 	int j = 0;
 	int rows_count = vect.at(0).rows;
 	for(int a = 0; a < rows_count; a++) {
