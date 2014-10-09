@@ -2,8 +2,8 @@
 TARGETS := DenseTrack Video
 
 # set the build configuration set 
-BUILD := release
-#BUILD := debug
+#BUILD := release
+BUILD := debug
 
 # set bin and build dirs
 BUILDDIR := .build_$(BUILD)
@@ -18,9 +18,9 @@ LIBS := \
 # set some flags and compiler/linker specific commands
 CXXFLAGS = -pipe -D __STDC_CONSTANT_MACROS -D STD=std -Wall $(CXXFLAGS_$(BUILD)) -I. -I/usr/include -std=c++11
 CXXFLAGS_debug := -ggdb
-CXXFLAGS_release := -O3 -DNDEBUG -ggdb
+CXXFLAGS_release := -O3 -DNDEBUG
 LDFLAGS = -L/usr/lib64 -pipe -Wall $(LDFLAGS_$(BUILD))
 LDFLAGS_debug := -ggdb
-LDFLAGS_release := -O3 -ggdb
+LDFLAGS_release := -O3 
 
 include make/generic.mk

@@ -262,71 +262,7 @@ void DenseTrajectories::process_frame(Mat& frame, std::vector<cv::Mat >* results
 	return;
 }
 
-void usage()
-{
-	fprintf(stderr, "Extract dense trajectories from a video\n\n");
-	fprintf(stderr, "Usage: DenseTrack video_file [options]\n");
-	fprintf(stderr, "Options:\n");
-	fprintf(stderr, "  -h                        Display this message and exit\n");
-	fprintf(stderr, "  -S [start frame]          The start frame to compute feature (default: S=0 frame)\n");
-	fprintf(stderr, "  -E [end frame]            The end frame for feature computing (default: E=last frame)\n");
-	fprintf(stderr, "  -L [trajectory length]    The length of the trajectory (default: L=15 frames)\n");
-	fprintf(stderr, "  -W [sampling stride]      The stride for dense sampling feature points (default: W=5 pixels)\n");
-	fprintf(stderr, "  -N [neighborhood size]    The neighborhood size for computing the descriptor (default: N=32 pixels)\n");
-	fprintf(stderr, "  -s [spatial cells]        The number of cells in the nxy axis (default: nxy=2 cells)\n");
-	fprintf(stderr, "  -t [temporal cells]       The number of cells in the nt axis (default: nt=3 cells)\n");
-	fprintf(stderr, "  -A [scale number]         The number of maximal spatial scales (default: 8 scales)\n");
-	fprintf(stderr, "  -I [initial gap]          The gap for re-sampling feature points (default: 1 frame)\n");
-}
 
-bool DenseTrajectories::arg_parse(int argc, char** argv)
-{
-	int c;
-	bool flag = false;
-	char* executable = basename(argv[0]);
-	while((c = getopt (argc, argv, "hS:E:L:W:N:s:t:A:I:")) != -1)
-	switch(c) {
-		case 'S':
-		start_frame = atoi(optarg);
-		flag = true;
-		break;
-		case 'E':
-		end_frame = atoi(optarg);
-		flag = true;
-		break;
-		case 'L':
-		track_length = atoi(optarg);
-		break;
-		case 'W':
-		min_distance = atoi(optarg);
-		break;
-		case 'N':
-		patch_size = atoi(optarg);
-		break;
-		case 's':
-		nxy_cell = atoi(optarg);
-		break;
-		case 't':
-		nt_cell = atoi(optarg);
-		break;
-		case 'A':
-		scale_num = atoi(optarg);
-		break;
-		case 'I':
-		init_gap = atoi(optarg);
-		break;	
-
-		case 'h':
-		usage();
-		exit(0);
-		break;
-
-		default:
-		fprintf(stderr, "error parsing arguments at -%c\n  Try '%s -h' for help.", c, executable );
-		abort();
-	}
-	return flag;
-}
 
 void DenseTrajectories::printMat(std::vector<cv::Mat >& vect) {
 	int j = 0;
@@ -353,3 +289,69 @@ void DenseTrajectories::printMat(std::vector<cv::Mat >& vect) {
 		printf("\n");
 	}
 }
+
+void DenseTrajectories::set_start_frame(int start_frame) {
+	this->start_frame = start_frame;
+}
+
+void DenseTrajectories::set_end_frame(int end_frame) {
+	this->end_frame = end_frame;
+}
+
+void DenseTrajectories::set_track_length(int track_length) {
+	this->track_length = track_length;
+}
+
+void DenseTrajectories::set_min_distance(int min_distance) {
+	this->min_distance = min_distance;
+}
+
+void DenseTrajectories::set_patch_size(int patch_size) {
+	this->patch_size = patch_size;
+}
+
+void DenseTrajectories::set_nxy_cell(int nxy_cell) {
+	this->nxy_cell = nxy_cell;
+}
+
+void DenseTrajectories::set_nt_cell(int nt_cell) {
+	this->nt_cell = nt_cell;
+}
+
+void DenseTrajectories::set_scale_num(int scale_num) {
+	this->scale_num = scale_num;
+}
+
+void DenseTrajectories::set_init_gap(int init_gap) {
+	this->init_gap = init_gap;
+}
+
+void DenseTrajectories::set_export_header(bool use_header) {
+	this->export_stats = use_header;
+}
+
+void DenseTrajectories::set_export_trajectories(bool export_trajectories) {
+	this->export_tracklets = export_trajectories;
+}
+
+void DenseTrajectories::set_export_hog(bool export_hog) {
+	this->export_hog = export_hog;
+}
+
+void DenseTrajectories::set_export_hof(bool export_hof) {
+	this->export_hof = export_hof;
+}
+
+void DenseTrajectories::set_export_mbhx(bool export_mbhx) {
+	this->export_mbhx = export_mbhx;
+}
+
+void DenseTrajectories::set_export_mbhy(bool export_mbhy) {
+	this->export_mbhy = export_mbhy;
+}
+
+void DenseTrajectories::set_export_mbh(bool export_mbh) {
+	this->export_mbh_whole = export_mbh;
+}
+
+

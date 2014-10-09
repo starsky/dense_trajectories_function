@@ -163,6 +163,22 @@ class DenseTrajectories {
 		void DrawTrack(const std::vector<Point2f>& point, const int index, const float scale, Mat& image);
 		int AppendVectDesc(std::vector<float>& desc, DescInfo& descInfo, TrackInfo& trackInfo, cv::Mat& row, int start_column);
 		bool IsValid(std::vector<Point2f>& track, float& mean_x, float& mean_y, float& var_x, float& var_y, float& length);
+		void set_start_frame(int start_frame);
+		void set_end_frame(int end_frame);
+		void set_track_length(int track_length);
+		void set_min_distance(int min_distance);
+		void set_patch_size(int patch_size);
+		void set_nxy_cell(int nxy_cell);
+		void set_nt_cell(int nt_cell);
+		void set_scale_num(int scale_num);
+		void set_init_gap(int init_gap);
+		void set_export_header(bool use_header);
+		void set_export_trajectories(bool export_trajectories);
+		void set_export_hog(bool export_hog);
+		void set_export_hof(bool export_hof);
+		void set_export_mbhx(bool export_mbhx);
+		void set_export_mbhy(bool export_mbhy);
+		void set_export_mbh(bool export_mbh);
 };
 
 #endif /*DENSETRACK_H_*/
