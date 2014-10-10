@@ -83,6 +83,13 @@ public:
 
 class DenseTrajectoriesBuilder;
 
+/**
+ * Class for computation of dense trajectories features.
+ *
+ * This class contains all code for computing dense trajectories features.
+ * It has been adopted from: http://lear.inrialpes.fr/people/wang/dense_trajectories
+ * and put into object oriented way.
+ */ 
 class DenseTrajectories {
 	friend class DenseTrajectoriesBuilder;
 	private:
@@ -157,10 +164,30 @@ class DenseTrajectories {
 		}
 		void initialize_dense_track();
 	public:
+		/**
+         * Process input frame, and computes dense trajectories features.
+         *
+         * Computes dense trajectories features based on input parameter frame. The features computed based
+         * on previous and current frame are saved in results output parameter.
+         * Output vector has as many elements as features selected to export using set_export_* in
+         * DenseTrajectoriesBuilder. Each element of vector contains cv::Mat object with computed features,
+         * based on current and previous frames.
+         */
 		void process_frame(const Mat& frame, std::vector<cv::Mat >& results);
+		/**
+		 * Prints computed features to stdout.
+		 */ 
 		void printMat(const std::vector<cv::Mat >& featuresVect) const;
 	};
-
+/**
+ * Builder class for creating DenseTrajectories object.
+ *
+ * Before invoking create() method it is possible
+ * to change parameters of feature extraction. To check actual meanings of given parameters please
+ * go to the website: http://lear.inrialpes.fr/people/wang/dense_trajectories
+ *
+ * set_export_* control which descriptors are included in resulting feature vector.
+ */
 class DenseTrajectoriesBuilder {
 	private:
 		int start_frame = 0;
@@ -199,6 +226,9 @@ class DenseTrajectoriesBuilder {
 		void set_export_mbhx(bool export_mbhx);
 		void set_export_mbhy(bool export_mbhy);
 		void set_export_mbh(bool export_mbh);
+		/**
+		 * Creates ready to use DenseTrajectories object
+		 */
 		DenseTrajectories& create();
 };
 #endif /*DENSETRACK_H_*/

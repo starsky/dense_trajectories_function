@@ -266,21 +266,23 @@ void DenseTrajectories::process_frame(const Mat& frame, std::vector<cv::Mat >& r
 
 
 void DenseTrajectories::printMat(const std::vector<cv::Mat >& vect) const {
-	int j = 0;
 	int rows_count = vect.at(0).rows;
 	for(int a = 0; a < rows_count; a++) {
-		int curr_desc = 0;
-
-		cv::Mat r = vect.at(curr_desc++);
-		printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\t", r.at<int>(a, 0), r.at<float>(a,1), r.at<float>(a,2), r.at<float>(a,3), r.at<float>(a,4), r.at<float>(a,5), r.at<float>(a,6));          
-		j = 0;
-		r = vect.at(curr_desc++);
-		for(int z = 0; z < 15; z++) {
-			printf("%f\t%f\t", r.at<float>(a,j), r.at<float>(a,j+1));
-			j += 2;
+		unsigned int curr_desc = 0;
+		if(export_stats) {
+			cv::Mat r = vect.at(curr_desc++);
+			printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\t", r.at<int>(a, 0), r.at<float>(a,1),
+				 r.at<float>(a,2), r.at<float>(a,3), r.at<float>(a,4), r.at<float>(a,5), r.at<float>(a,6));
 		}
-
-		for(;curr_desc < 5; curr_desc++) {
+		if(export_tracklets) {
+			int j = 0;
+			cv::Mat r = vect.at(curr_desc++);
+			for(int z = 0; z < track_length; z++) {
+				printf("%f\t%f\t", r.at<float>(a,j), r.at<float>(a,j+1));
+				j += 2;
+			}
+		}
+		for(;curr_desc < vect.size(); curr_desc++) {
 			cv::Mat r = vect.at(curr_desc);
 			for(int z = 0; z < r.cols; z++) {
 				printf("%.7f\t", r.at<float>(a,z));

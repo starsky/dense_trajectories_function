@@ -24,3 +24,6 @@ LDFLAGS_debug := -ggdb
 LDFLAGS_release := -O3 
 
 include make/generic.mk
+
+doc:
+	doxygen Doxyfile
