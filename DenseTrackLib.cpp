@@ -7,41 +7,8 @@
 
 using namespace cv;
 
-int start_frame = 0;
-int end_frame = INT_MAX;
-int scale_num = 8;
 
-// parameters for descriptors
-int patch_size = 32;
-int nxy_cell = 2;
-int nt_cell = 3;
-float epsilon = 0.05;
-// parameters for tracking
-double quality = 0.001;
-int min_distance = 5;
-int init_gap = 1;
-int track_length = 15;
-int desc_size = 7 + track_length * 2 + 8 * nxy_cell * nxy_cell * nt_cell + 9 * nxy_cell * nxy_cell * nt_cell + 8 * nxy_cell * nxy_cell * nt_cell + 8 * nxy_cell * nxy_cell * nt_cell; 
-
-int show_track = 0; // set show_track = 1, if you want to visualize the trajectories
-	
-Mat image, prev_grey, grey;
-
-//Global variables (soo ugly :( )
-std::vector<float> fscales(0);
-std::vector<Size> sizes(0);
-
-std::vector<Mat> prev_grey_pyr(0), grey_pyr(0), flow_pyr(0);
-std::vector<Mat> prev_poly_pyr(0), poly_pyr(0); // for optical flow
-
-std::vector<std::list<Track> > xyScaleTracks;
-int init_counter = 0; // indicate when to detect new feature points
-int frame_num = 0;
-TrackInfo trackInfo;
-DescInfo hogInfo, hofInfo, mbhInfo;
-
-
-void initialize_dense_track() {
+void DenseTrajectories::initialize_dense_track() {
 	InitTrackInfo(&trackInfo, track_length, init_gap);
 	//printf("init: %d %d\n", nxy_cell,nt_cell);
 	InitDescInfo(&hogInfo, 8, false, patch_size, nxy_cell, nt_cell);
@@ -54,43 +21,38 @@ void initialize_dense_track() {
 		namedWindow("DenseTrack", 0);
 }
 
-void process_frame(Mat& frame, std::vector<cv::Mat >* results) {
-	bool export_stats = true;
-	bool export_tracklets = true;
-	bool export_hog = true;
-	bool export_hof = true;
-	bool export_mbhx = false;
-	bool export_mbhy = false;
-	bool export_mbh_whole = true;	
+void DenseTrajectories::process_frame(const Mat& frame, std::vector<cv::Mat >& results) {
 	if(export_stats) {
 		cv::Mat row(0,7,CV_32F);
-		results->push_back(row);
+		results.push_back(row);
 	}
 	if(export_tracklets) {
 		cv::Mat row(0,trackInfo.length * 2,CV_32F);
-		results->push_back(row);
+		results.push_back(row);
 	}
 	if(export_hog) {
 		cv::Mat row(0,hogInfo.dim,CV_32F);
-		results->push_back(row);
+		results.push_back(row);
 	}
 	if(export_hof) {
 		cv::Mat row(0,hofInfo.dim,CV_32F);
-		results->push_back(row);
+		results.push_back(row);
 	}
 	if(export_mbhx) {
 		cv::Mat row(0,mbhInfo.dim,CV_32F);
-		results->push_back(row);
+		results.push_back(row);
 	}
 	if(export_mbhy) {
 		cv::Mat row(0,mbhInfo.dim,CV_32F);
-		results->push_back(row);
+		results.push_back(row);
 	}
 	if(export_mbh_whole) {
 		cv::Mat row(0,2 * mbhInfo.dim,CV_32F);
-		results->push_back(row);
+		results.push_back(row);
 	}
-	int i, j, c;
+
+	unsigned int i;
+	int c; //, j, c;
 	if(frame.empty())
 		return;
 
@@ -147,7 +109,7 @@ void process_frame(Mat& frame, std::vector<cv::Mat >* results) {
 
 	// compute optical flow for all scales once
 	my::FarnebackPolyExpPyr(grey, poly_pyr, fscales, 7, 1.5);
-	my::calcOpticalFlowFarneback(prev_poly_pyr, poly_pyr, flow_pyr, 10, 2);
+	my::calcOpticalFlowFarneback(prev_poly_pyr, poly_pyr, flow_pyr, 10, 2, scale_stride);
 
 	for(int iScale = 0; iScale < scale_num; iScale++) {
 		if(iScale == 0)
@@ -207,7 +169,6 @@ void process_frame(Mat& frame, std::vector<cv::Mat >* results) {
 			
 				float mean_x(0), mean_y(0), var_x(0), var_y(0), length(0);
 				if(IsValid(trajectory, mean_x, mean_y, var_x, var_y, length)) {
-					//printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\t", frame_num, mean_x, mean_y, var_x, var_y, length, fscales[iScale]);
 					int curr_desc = 0;
 					if(export_stats) {
 						cv::Mat row(1,7,CV_32F);
@@ -218,7 +179,7 @@ void process_frame(Mat& frame, std::vector<cv::Mat >* results) {
 						row.at<float>(0,4) = (var_y);
 						row.at<float>(0,5) = (length);
 						row.at<float>(0,6) = (fscales[iScale]);
-						results->at(curr_desc++).push_back(row);
+						results.at(curr_desc++).push_back(row);
 					}
 					// output the trajectory
 					if(export_tracklets) {
@@ -228,45 +189,37 @@ void process_frame(Mat& frame, std::vector<cv::Mat >* results) {
 							row.at<float>(0,curr_col++) = (trajectory[i].x);
 							row.at<float>(0,curr_col++) = (trajectory[i].y);
 						}
-						results->at(curr_desc++).push_back(row);
+						results.at(curr_desc++).push_back(row);
 					}
 					if(export_hog) {
-					//	printf("%f\t%f\t", trajectory[i].x,trajectory[i].y);
-					//	printf("HOG size%d\n", hogInfo.dim);
 						cv::Mat row(1,hogInfo.dim * hogInfo.ntCells, CV_32F);
 						AppendVectDesc(iTrack->hog, hogInfo, trackInfo, row, 0);
-						results->at(curr_desc++).push_back(row);
+						results.at(curr_desc++).push_back(row);
 					}
 					if(export_hof) {
 						cv::Mat row(1,hofInfo.dim * hofInfo.ntCells, CV_32F);
 						AppendVectDesc(iTrack->hof, hofInfo, trackInfo, row, 0);
-						results->at(curr_desc++).push_back(row);
+						results.at(curr_desc++).push_back(row);
 					}
 
 					if(export_mbhx) {
 						cv::Mat row(1,mbhInfo.dim * mbhInfo.ntCells, CV_32F);
 						AppendVectDesc(iTrack->mbhX, mbhInfo, trackInfo, row, 0);
-						results->at(curr_desc++).push_back(row);
+						results.at(curr_desc++).push_back(row);
 					}
 
 					if(export_mbhy) {
 						cv::Mat row(1,mbhInfo.dim * mbhInfo.ntCells, CV_32F);
 						AppendVectDesc(iTrack->mbhY, mbhInfo, trackInfo, row, 0);
-						results->at(curr_desc++).push_back(row);
+						results.at(curr_desc++).push_back(row);
 					}
 					if(export_mbh_whole) {
 						cv::Mat row(1,2 * mbhInfo.dim * mbhInfo.ntCells, CV_32F);
                                                 int start_col = AppendVectDesc(iTrack->mbhX, mbhInfo, trackInfo, row, 0);
 						AppendVectDesc(iTrack->mbhY, mbhInfo, trackInfo, row, start_col);
-                                                results->at(curr_desc++).push_back(row);
+                                                results.at(curr_desc++).push_back(row);
 					}
 
-					//PrintDesc(iTrack->hog, hogInfo, trackInfo);
-					//PrintDesc(iTrack->hof, hofInfo, trackInfo);
-					//PrintDesc(iTrack->mbhX, mbhInfo, trackInfo);
-					//PrintDesc(iTrack->mbhY, mbhInfo, trackInfo);
-					//printf("\n");
-					//results->push_back(row);
 				}
 
 				iTrack = tracks.erase(iTrack);
@@ -310,88 +263,26 @@ void process_frame(Mat& frame, std::vector<cv::Mat >* results) {
 	return;
 }
 
-void usage()
-{
-	fprintf(stderr, "Extract dense trajectories from a video\n\n");
-	fprintf(stderr, "Usage: DenseTrack video_file [options]\n");
-	fprintf(stderr, "Options:\n");
-	fprintf(stderr, "  -h                        Display this message and exit\n");
-	fprintf(stderr, "  -S [start frame]          The start frame to compute feature (default: S=0 frame)\n");
-	fprintf(stderr, "  -E [end frame]            The end frame for feature computing (default: E=last frame)\n");
-	fprintf(stderr, "  -L [trajectory length]    The length of the trajectory (default: L=15 frames)\n");
-	fprintf(stderr, "  -W [sampling stride]      The stride for dense sampling feature points (default: W=5 pixels)\n");
-	fprintf(stderr, "  -N [neighborhood size]    The neighborhood size for computing the descriptor (default: N=32 pixels)\n");
-	fprintf(stderr, "  -s [spatial cells]        The number of cells in the nxy axis (default: nxy=2 cells)\n");
-	fprintf(stderr, "  -t [temporal cells]       The number of cells in the nt axis (default: nt=3 cells)\n");
-	fprintf(stderr, "  -A [scale number]         The number of maximal spatial scales (default: 8 scales)\n");
-	fprintf(stderr, "  -I [initial gap]          The gap for re-sampling feature points (default: 1 frame)\n");
-}
 
-bool arg_parse(int argc, char** argv)
-{
-	int c;
-	bool flag = false;
-	char* executable = basename(argv[0]);
-	while((c = getopt (argc, argv, "hS:E:L:W:N:s:t:A:I:")) != -1)
-	switch(c) {
-		case 'S':
-		start_frame = atoi(optarg);
-		flag = true;
-		break;
-		case 'E':
-		end_frame = atoi(optarg);
-		flag = true;
-		break;
-		case 'L':
-		track_length = atoi(optarg);
-		break;
-		case 'W':
-		min_distance = atoi(optarg);
-		break;
-		case 'N':
-		patch_size = atoi(optarg);
-		break;
-		case 's':
-		nxy_cell = atoi(optarg);
-		break;
-		case 't':
-		nt_cell = atoi(optarg);
-		break;
-		case 'A':
-		scale_num = atoi(optarg);
-		break;
-		case 'I':
-		init_gap = atoi(optarg);
-		break;	
 
-		case 'h':
-		usage();
-		exit(0);
-		break;
-
-		default:
-		fprintf(stderr, "error parsing arguments at -%c\n  Try '%s -h' for help.", c, executable );
-		abort();
-	}
-	return flag;
-}
-
-void printMat(std::vector<cv::Mat >& vect) {
-	int j = 0;
+void DenseTrajectories::printMat(const std::vector<cv::Mat >& vect) const {
 	int rows_count = vect.at(0).rows;
 	for(int a = 0; a < rows_count; a++) {
-		int curr_desc = 0;
-
-		cv::Mat r = vect.at(curr_desc++);
-		printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\t", r.at<int>(a, 0), r.at<float>(a,1), r.at<float>(a,2), r.at<float>(a,3), r.at<float>(a,4), r.at<float>(a,5), r.at<float>(a,6));          
-		j = 0;
-		r = vect.at(curr_desc++);
-		for(int z = 0; z < 15; z++) {
-			printf("%f\t%f\t", r.at<float>(a,j), r.at<float>(a,j+1));
-			j += 2;
+		unsigned int curr_desc = 0;
+		if(export_stats) {
+			cv::Mat r = vect.at(curr_desc++);
+			printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\t", r.at<int>(a, 0), r.at<float>(a,1),
+				 r.at<float>(a,2), r.at<float>(a,3), r.at<float>(a,4), r.at<float>(a,5), r.at<float>(a,6));
 		}
-
-		for(;curr_desc < 5; curr_desc++) {
+		if(export_tracklets) {
+			int j = 0;
+			cv::Mat r = vect.at(curr_desc++);
+			for(int z = 0; z < track_length; z++) {
+				printf("%f\t%f\t", r.at<float>(a,j), r.at<float>(a,j+1));
+				j += 2;
+			}
+		}
+		for(;curr_desc < vect.size(); curr_desc++) {
 			cv::Mat r = vect.at(curr_desc);
 			for(int z = 0; z < r.cols; z++) {
 				printf("%.7f\t", r.at<float>(a,z));
@@ -402,47 +293,74 @@ void printMat(std::vector<cv::Mat >& vect) {
 	}
 }
 
-
-void printVect(std::vector< std::vector< float > >& featuresVect) {
-	int j = 0;
-	for( std::vector< std::vector<float> >::const_iterator i = featuresVect.begin(); i != featuresVect.end(); ++i) {
-		std::vector<float> r = *i;
-		printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\t", (int) r[0], r[1], r[2], r[3], r[4], r[5], r[6]);          
-		j = 7;
-		for(int z = 0; z < 15; z++) {
-			printf("%f\t%f\t", r[j], r[j+1]);
-			j += 2;
-		}
-		for(int z = j; z < r.size(); z++) {
-			printf("%.7f\t", r[z]);
-		}
-		printf("\n");
-	}
+void DenseTrajectoriesBuilder::set_start_frame(int start_frame) {
+	this->start_frame = start_frame;
 }
-/*
-int main(int argc, char** argv)
-{
-	VideoCapture capture;
-	char* video = argv[1];
-	int flag = arg_parse(argc, argv);
-	capture.open(video);
 
-	if(!capture.isOpened()) {
-		fprintf(stderr, "Could not initialize capturing..\n");
-		return -1;
-	}
-	initialize_dense_track();
-	while(true) {
-		// get a new frame
-		Mat frame;
-		capture >> frame;
-		if(frame.empty())
-			break;
-		process_frame(frame);		
-	}
+void DenseTrajectoriesBuilder::set_end_frame(int end_frame) {
+	this->end_frame = end_frame;
+}
 
-	if( show_track == 1 )
-		destroyWindow("DenseTrack");
+void DenseTrajectoriesBuilder::set_track_length(int track_length) {
+	this->track_length = track_length;
+}
 
-	return 0;
-}*/
+void DenseTrajectoriesBuilder::set_min_distance(int min_distance) {
+	this->min_distance = min_distance;
+}
+
+void DenseTrajectoriesBuilder::set_patch_size(int patch_size) {
+	this->patch_size = patch_size;
+}
+
+void DenseTrajectoriesBuilder::set_nxy_cell(int nxy_cell) {
+	this->nxy_cell = nxy_cell;
+}
+
+void DenseTrajectoriesBuilder::set_nt_cell(int nt_cell) {
+	this->nt_cell = nt_cell;
+}
+
+void DenseTrajectoriesBuilder::set_scale_num(int scale_num) {
+	this->scale_num = scale_num;
+}
+
+void DenseTrajectoriesBuilder::set_init_gap(int init_gap) {
+	this->init_gap = init_gap;
+}
+
+void DenseTrajectoriesBuilder::set_export_header(bool use_header) {
+	this->export_stats = use_header;
+}
+
+void DenseTrajectoriesBuilder::set_export_trajectories(bool export_trajectories) {
+	this->export_tracklets = export_trajectories;
+}
+
+void DenseTrajectoriesBuilder::set_export_hog(bool export_hog) {
+	this->export_hog = export_hog;
+}
+
+void DenseTrajectoriesBuilder::set_export_hof(bool export_hof) {
+	this->export_hof = export_hof;
+}
+
+void DenseTrajectoriesBuilder::set_export_mbhx(bool export_mbhx) {
+	this->export_mbhx = export_mbhx;
+}
+
+void DenseTrajectoriesBuilder::set_export_mbhy(bool export_mbhy) {
+	this->export_mbhy = export_mbhy;
+}
+
+void DenseTrajectoriesBuilder::set_export_mbh(bool export_mbh) {
+	this->export_mbh_whole = export_mbh;
+}
+
+DenseTrajectories& DenseTrajectoriesBuilder::create() {
+	DenseTrajectories* dt = new DenseTrajectories(start_frame, end_frame, track_length, min_distance,
+					patch_size, nxy_cell, nt_cell, scale_num, init_gap, export_stats, export_tracklets,
+					export_hog, export_hof, export_mbhx, export_mbhy, export_mbh_whole);
+	return *dt;
+}
+
