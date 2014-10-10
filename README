@@ -1,3 +1,13 @@
+### Introduction ###
+This project is based on dense trajectories code created by Heng Wang (see following sections).
+The main contribution of this project comparing to Heng is that code has been encapsulated into class
+and now the design is more object oriented. This make it easy to include and link mentioned code into
+other projects you my have.
+
+If you have any problems or question with using this code please contact me first: michal.koperski@inria.fr
+
+The rest of this file is original README done by Heng.
+
 ### Compiling ###
 
 In order to compile the dense trajectories code, you need to have the following libraries installed in your system:
